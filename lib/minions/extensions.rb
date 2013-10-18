@@ -1,2 +1,2 @@
 require 'minions/extensions/string'
-require 'minions/extensions/eventmachine'
+require 'minions/extensions/event_machine'
