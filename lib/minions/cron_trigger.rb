@@ -35,6 +35,10 @@ module Minions
       self.fire_after_time(now+1).to_i - now.to_i
     end
 
+    def next_trigger_ms
+      now = Time.now
+      self.fire_after_time(now+1).to_f - now.to_f
+    end
     # =============================================================================
     def fire_after_time p_time
       @t_sec,@t_min,@t_hour,@t_day,@t_month,@t_year,@t_wday,@t_yday,@t_idst,@t_zone = p_time.to_a

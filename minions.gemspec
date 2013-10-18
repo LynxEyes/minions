@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = Minions::VERSION
   spec.authors       = ["Ivo Jesus"]
   spec.email         = ["ivo-m-jesus@telecom.pt"]
-  spec.description   = "TODO: Write a gem description"
-  spec.summary       = "TODO: Write a gem summary"
+  spec.description   = "Minions..."
+  spec.summary       = "Minions..."
   spec.homepage      = ""
   spec.license       = "MIT"
 
@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "redis", "=> 3.0.0"
+  spec.add_dependency "redis", "> 3.0.0"
   spec.add_dependency "multi_json"
   spec.add_dependency "eventmachine"
   spec.add_dependency "chronic"

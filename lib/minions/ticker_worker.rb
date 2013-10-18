@@ -45,7 +45,7 @@ module Minions
 
     # =============================================================================
     def schedule_task worker, task, cron
-      EventMachine::Timer.new(cron.next_trigger) do
+      EventMachine.add_timer_ms cron.next_trigger_ms do
         redis.publish "##{worker}", MultiJson.dump({:task => task})
         schedule_task worker, task, cron
       end

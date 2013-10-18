@@ -9,6 +9,7 @@ require 'chronic'
 # -----------------------------------------------------------------------------
 require "minions/version"
 require 'minions/utils'
+require 'minions/extensions'
 require 'minions/worker_logger'
 require 'minions/minion'
 # -----------------------------------------------------------------------------
