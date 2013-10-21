@@ -1,6 +1,104 @@
 #!/usr/bin/env ruby
 
+require 'optparse'
 require 'rubygems'
 require 'minions'
 
-Minions.run
+# -----------------------------------------------------------------------------
+# App config defaults...
+$APP_CONFIG ||= {}
+$APP_CONFIG[:env] = "development"
+$APP_CONFIG[:logto] = "./log/minions.log"
+
+# -----------------------------------------------------------------------------
+# Option parsing...
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: minions [options] start|stop"
+  opts.on_tail('-h', '--help', 'Show this message') do
+    puts opts
+    exit 1
+  end
+
+  opts.on("-e", "--environment [ENV]", "Selects the environment") do |env|
+    $APP_CONFIG[:env] = env
+  end
+  opts.on "-d", "--daemon", "Sets minions in deamon mode" do
+    $APP_CONFIG[:daemon] = true
+  end
+  opts.on "-l", "--logto [FILENAME]", "Sets the internal log filename (also accepts 'stderr' or 'stdout') - Defaults to: #{$APP_CONFIG[:logto]}" do |filename|
+    $APP_CONFIG[:logto] = case filename
+      when "stderr"; $stderr
+      when "stdout"; $stdout
+      else filename
+    end
+  end
+end
+parser.parse!
+
+# -----------------------------------------------------------------------------
+# Command parsing...
+command = ARGV.delete_at(0)
+
+# =============================================================================
+# -----------------------------------------------------------------------------
+def start
+  if Minions.running?
+    puts "Minions already running..."
+  else
+    if $APP_CONFIG[:daemon]
+      print "launching as a daemon... "
+
+      Process.launch_daemon :chdir => false do
+        Minions::PID.write :root => Process.pid
+        Minions.start
+      end
+
+      sleep(1) while !Minions.running?
+
+      puts "done!"
+    else
+      puts "launching in live mode..."
+      Minions.start
+    end
+  end
+end
+
+# -----------------------------------------------------------------------------
+def stop
+  if Minions.running?
+    print "stopping minions... "
+
+    Minions.stop
+    sleep(1) while Minions.running?
+    Minions::PID.delete :root
+
+    puts "done!"
+
+  else
+    puts "minions isn't running...."
+  end
+end
+
+# -----------------------------------------------------------------------------
+def status
+  if Minions.running?
+    # TODO!!!
+    pids = Minions::PID.read :root, :ticker, :masters
+    x = pids.map do |name, pid|
+      ps_data = %x[ps -o pcpu=,rss= #{pid}].split.map(&:to_f)
+      [name, ps_data.join(",")]
+    end.join "\n"
+    puts x
+  else
+    puts "minions isn't running...."
+  end
+end
+
+
+# =============================================================================
+case command
+  when "start"  then start
+  when "stop"   then stop
+  when "status" then status
+  else puts parser
+end

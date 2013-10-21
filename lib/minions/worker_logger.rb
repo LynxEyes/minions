@@ -1,19 +1,23 @@
 module Minions
   module WorkerLogger
 
-    def logname name = nil
-      (name && @logname = name) || @logname || self.class.name.underscore
+    def logname= name
+      FileUtils.mkdir_p File.dirname(name)
+      @logname = name
+    end
+
+    def logname
+      @logname ||= begin
+        FileUtils.mkdir_p "./log"
+        "./log/#{self.class.name.underscore}.log"
+      end
     end
 
     def logger
-      @logger ||= Logger.new("#{logname}.log").tap do |l|
+      @logger ||= Logger.new(logname).tap do |l|
         l.formatter       = Logger::Formatter.new
         l.datetime_format = "%Y-%m-%d %H:%M:%S"
-        l.level = if defined? APP_ENV
-                    "development" == APP_ENV ? Logger::DEBUG : Logger::INFO
-                  else
-                    Logger::DEBUG
-                  end
+        l.level = ("development" == $APP_CONFIG[:env] ? Logger::DEBUG : Logger::INFO)
       end
     end
 

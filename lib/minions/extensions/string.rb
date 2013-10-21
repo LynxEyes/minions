@@ -10,14 +10,16 @@ class String
   #   * "HelloWorld".underscore # => "hello_world"
   #   * "MyModule::HelloWorld".underscore # => "my_module/hello_world"
   #   * "CMSUsers".underscore # => "cms_users"
-  def underscore
-    word = self.dup
-    word.gsub!(/::/, '/')
-    word.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
-    word.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
-    word.tr!("-", "_")
-    word.downcase!
-    word
+  unless method_defined? :underscore
+    def underscore
+      word = self.dup
+      word.gsub!(/::/, '/')
+      word.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
+      word.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+      word.tr!("-", "_")
+      word.downcase!
+      word
+    end
   end
 
   # -----------------------------------------------------------------------------
@@ -26,12 +28,14 @@ class String
   #   * "hello_world".classify # => "HelloWorld"
   #   * "my_module/hello_world".classify # => "MyModule::HelloWorld"
   #   * "cms_users".classify # => "CmsUsers"
-  def classify
-    word = self.dup
-    word.gsub!(/^([a-z])/){$1.capitalize}
-    word.gsub!(/(?:_|(\/))([a-z\d]*)/){"#{$1}#{$2.capitalize}"}
-    word.gsub!('/', '::')
-    word
+  unless method_defined? :classify
+    def classify
+      word = self.dup
+      word.gsub!(/^([a-z])/){$1.capitalize}
+      word.gsub!(/(?:_|(\/))([a-z\d]*)/){"#{$1}#{$2.capitalize}"}
+      word.gsub!('/', '::')
+      word
+    end
   end
 
   # -----------------------------------------------------------------------------
@@ -40,11 +44,26 @@ class String
   #   * "HelloWorld".demodulize # => "HelloWorld"
   #   * "MyModule::HelloWorld".demodulize # => "HelloWorld"
   #   * "CMS::MyModule::HelloWorld".demodulize # => "HelloWorld"
-  def demodulize
-    if i = self.rindex('::')
-      self[(i+2)..-1]
-    else
-      self
+  unless method_defined? :demodulize
+    def demodulize
+      if i = self.rindex('::')
+        self[(i+2)..-1]
+      else
+        self
+      end
+    end
+  end
+
+  # -----------------------------------------------------------------------------
+  # Removes excessive trailing whitespace from heredocs.
+  # Ex:  x = <<-EOS.strip_heredoc
+  #          hello
+  #            world
+  #      EOS  # => "hello\n  world"
+  unless method_defined? :strip_heredoc
+    def strip_heredoc
+      indent = scan(/^[ \t]*(?=\S)/).min.size rescue 0
+      gsub(/^[ \t]{#{indent}}/, '')
     end
   end
 
