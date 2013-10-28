@@ -11,8 +11,18 @@ module Minions
       end
 
       # -----------------------------------------------------------------------------
-      def number_of_slaves
-        Minions.number_of_slaves minion_name
+      def minion_config
+        Minions.minion minion_name
+        # @minion_config ||= MinionConfig.new(minion_name)
+      end
+
+      # -----------------------------------------------------------------------------
+      def channel; minion_config.channel; end
+      def queue  ; minion_config.queue  ; end
+
+      # -----------------------------------------------------------------------------
+      def slaves
+        minion_config.slaves
       end
 
       # -----------------------------------------------------------------------------
@@ -45,9 +55,6 @@ module Minions
         (block_given? && @finalize_block = block) || @finalize_block
       end
 
-      # -----------------------------------------------------------------------------
-      def channel; "##{minion_name}"; end
-      def queue  ;  "#{minion_name}"; end
     end # class methods
 
     # =============================================================================

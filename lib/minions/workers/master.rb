@@ -7,6 +7,7 @@ module Minions
     class Master
       include WorkerLogger
 
+      # =============================================================================
       class << self
         def run minion_name
           minion_class = Minions.load_worker minion_name.to_sym
@@ -34,29 +35,17 @@ module Minions
 
       # -----------------------------------------------------------------------------
       def run
-        pids = minion.number_of_slaves.times.map do |i|
-          fork || Slave.run(minion)
-        end
-
-        PID.write_slaves pids
-
+        trap(:INT){}
         trap(:TERM) do
           channel_listener.unsubscribe if channel_listener.subscribed?
-
-          pids.each do |pid|
-            puts "Stopping #{pid}"
-            Process.kill :TERM, pid
-          end
-          puts "waiting for all children to die"
-          Process.waitall
-          PID.delete_slaves
         end
 
-        # puts "Master pid: #{Process.pid}; slave pids: #{pids.join ', '}"
         channel_listener.subscribe minion.channel do |on|
           on.message do |_, message|
-            task = MultiJson.load(message, :symbolize_keys => true)[:task].to_sym
-            context.instance_exec(&callbacks[task]) if callbacks[task]
+            json_message = MultiJson.load(message, :symbolize_keys => true)
+            task = json_message[:task].to_sym
+            args = json_message[:args] || []
+            context.instance_exec(*args, &callbacks[task]) if callbacks[task]
           end
         end
 

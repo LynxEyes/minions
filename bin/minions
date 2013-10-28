@@ -5,12 +5,6 @@ require 'rubygems'
 require 'minions'
 
 # -----------------------------------------------------------------------------
-# App config defaults...
-$APP_CONFIG ||= {}
-$APP_CONFIG[:env] = "development"
-$APP_CONFIG[:logto] = "./log/minions.log"
-
-# -----------------------------------------------------------------------------
 # Option parsing...
 parser = OptionParser.new do |opts|
   opts.banner = "Usage: minions [options] start|stop"
@@ -20,13 +14,13 @@ parser = OptionParser.new do |opts|
   end
 
   opts.on("-e", "--environment [ENV]", "Selects the environment") do |env|
-    $APP_CONFIG[:env] = env
+    Minions[:env] = env
   end
   opts.on "-d", "--daemon", "Sets minions in deamon mode" do
-    $APP_CONFIG[:daemon] = true
+    Minions[:daemon] = true
   end
-  opts.on "-l", "--logto [FILENAME]", "Sets the internal log filename (also accepts 'stderr' or 'stdout') - Defaults to: #{$APP_CONFIG[:logto]}" do |filename|
-    $APP_CONFIG[:logto] = case filename
+  opts.on "-l", "--logto [FILENAME]", "Sets the internal log filename (also accepts 'stderr' or 'stdout') - Defaults to: #{Minions[:logto]}" do |filename|
+    Minions[:logto] = case filename
       when "stderr"; $stderr
       when "stdout"; $stdout
       else filename
@@ -45,11 +39,10 @@ def start
   if Minions.running?
     puts "Minions already running..."
   else
-    if $APP_CONFIG[:daemon]
+    if Minions[:daemon]
       print "launching as a daemon... "
 
       Process.launch_daemon :chdir => false do
-        Minions::PID.write :root => Process.pid
         Minions.start
       end
 
@@ -70,7 +63,6 @@ def stop
 
     Minions.stop
     sleep(1) while Minions.running?
-    Minions::PID.delete :root
 
     puts "done!"
 

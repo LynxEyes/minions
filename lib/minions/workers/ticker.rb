@@ -8,13 +8,13 @@ module Minions
 
       # =============================================================================
       class << self
-        def workers
-          @workers ||= Minions.workers.reduce([]) do |acc, (worker, worker_conf)|
-            acc += worker_conf[:tasks].map do |task, cron|
-              [worker, task, CronTrigger.new(cron)]
+        def minions
+          @minions ||= Minions.minions.reduce([]) do |acc, (_, minion)|
+            acc += minion.task_schedules.map do |task, cron|
+              [minion, task, CronTrigger.new(cron)]
             end
           end
-        end # def workers
+        end # def minions
 
         def run; self.new.run; end
       end
@@ -32,10 +32,11 @@ module Minions
       # =============================================================================
       def run
         EventMachine.run do
-          self.class.workers.each do |worker, task, cron|
-            schedule_task worker, task, cron
+          self.class.minions.each do |minion, task, cron|
+            schedule_task minion, task, cron
           end
 
+          trap(:INT){}
           trap(:TERM) do
             EventMachine.stop
             finalize
@@ -45,10 +46,10 @@ module Minions
       end
 
       # =============================================================================
-      def schedule_task worker, task, cron
+      def schedule_task minion, task, cron
         EventMachine.add_timer_ms cron.next_trigger_ms do
-          redis.publish "##{worker}", MultiJson.dump({:task => task})
-          schedule_task worker, task, cron
+          redis.publish minion.channel, MultiJson.dump({:task => task})
+          schedule_task minion, task, cron
         end
       end
 

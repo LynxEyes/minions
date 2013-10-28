@@ -1,3 +1,4 @@
+# -----------------------------------------------------------------------------
 module Minions
   module Workers
     # -----------------------------------------------------------------------------
@@ -8,15 +9,17 @@ module Minions
 
       # =============================================================================
       class << self
-        def run minion_class
+        def run minion_name
+          minion_class = Minions.load_worker minion_name.to_sym
           self.new(minion_class).run
         end
       end
       # =============================================================================
+      # -----------------------------------------------------------------------------
       attr_reader :minion, :context, :callbacks
       # -----------------------------------------------------------------------------
-      def initialize minion_klazz
-        @minion    = minion_klazz
+      def initialize minion_class
+        @minion    = minion_class
         @context   = minion.new(self)
         @callbacks = minion.slave
 
@@ -33,6 +36,7 @@ module Minions
       # -----------------------------------------------------------------------------
       def run
         stop_and_exit = false
+        trap(:INT){}
         trap :TERM do
           stop_and_exit = true
         end

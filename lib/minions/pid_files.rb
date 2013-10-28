@@ -45,8 +45,9 @@ module Minions
 
     # -----------------------------------------------------------------------------
     def self.delete *names
-      names.each do |name|
-        File.delete pid_filename(name)
+      names.map do |name|
+        filename = pid_filename name
+        !!File.delete(filename) if File.exists? filename
       end
     end
 

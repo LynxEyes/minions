@@ -1,26 +1,56 @@
 module Minions
   module WorkerLogger
 
-    def logname= name
-      FileUtils.mkdir_p File.dirname(name)
-      @logname = name
-    end
+    # -----------------------------------------------------------------------------
+    def log_to name_or_stream
+      # when changing the log_name, close and set the current logger to nil
+      # in order for the next call to #logger yield a NEW logger!
+      @logger && @logger.close && @logger = nil
 
-    def logname
-      @logname ||= begin
-        FileUtils.mkdir_p "./log"
-        "./log/#{self.class.name.underscore}.log"
+      if name_or_stream.is_a? IO
+        @log_name = name_or_stream
+      else
+        basename = File.basename name_or_stream
+        extname  = File.extname basename
+        dirname  = File.dirname name_or_stream
+
+        extname  = extname.empty? ? ".log" : ""
+        dirname  = "#{File.expand_path "."}/log" if dirname == "."
+
+        FileUtils.mkdir_p dirname
+        @log_name = "#{dirname}/#{basename}#{extname}"
       end
     end
 
+    # -----------------------------------------------------------------------------
+    def log_name
+      @log_name ||= begin
+        name = self.class.name.demodulize.underscore
+        if Minions::Minion == self.class.superclass
+          log_to "./log/#{name}.log"
+        else
+          log_to(Minions[:daemon] ? "minions_#{name}.log" : $stdout)
+        end
+      end
+    end
+
+    # -----------------------------------------------------------------------------
     def logger
-      @logger ||= Logger.new(logname).tap do |l|
-        l.formatter       = Logger::Formatter.new
-        l.datetime_format = "%Y-%m-%d %H:%M:%S"
-        l.level = ("development" == $APP_CONFIG[:env] ? Logger::DEBUG : Logger::INFO)
+      @logger ||= Logger.new(log_name).tap do |l|
+        l.formatter = if Minions::Minion == self.class.superclass
+                        Proc.new do |severity, timestamp, progname, msg|
+                          "#{severity.chars.first} [#{timestamp} ##{progname || Process.pid}]: #{msg}\n"
+                        end
+                      else
+                        Proc.new do |severity, timestamp, progname, msg|
+                          "#{severity.chars.first} [#{timestamp}]: #{msg}\n"
+                        end
+                    end
+        l.level = ("development" == Minions[:env] ? Logger::DEBUG : Logger::INFO)
       end
     end
 
+    # -----------------------------------------------------------------------------
     def log message, level = :info
       logger.send(level, message)
     end
