@@ -62,6 +62,10 @@ module Minions
       @worker = worker
     end
 
+    def load_rails_env
+      load "#{File.expand_path "."}/config/environment.rb"
+    end
+
     attr_reader :worker
     delegate :enqueue, :to => :worker
 
