@@ -23,12 +23,12 @@ module Minions
         @context   = minion.new(self)
         @callbacks = minion.master
 
-        context.instance_exec(&minion.initialize) if minion.initialize
+        context.instance_exec(&minion.initializer) if minion.initializer
       end
 
       # -----------------------------------------------------------------------------
       def finalize
-        context.instance_exec(&minion.finalize) if minion.finalize
+        context.instance_exec(&minion.finalizer) if minion.finalizer
         channel_listener.quit
         queue_writer.quit
       end
@@ -45,7 +45,7 @@ module Minions
             json_message = MultiJson.load(message, :symbolize_keys => true)
             task = json_message[:task].to_sym
             args = json_message[:args] || []
-            context.instance_exec(*args, &callbacks[task]) if callbacks[task]
+            context.instance_exec(args, &callbacks[task]) if callbacks[task]
           end
         end
 

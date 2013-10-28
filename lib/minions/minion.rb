@@ -46,12 +46,12 @@ module Minions
       end
 
       # -----------------------------------------------------------------------------
-      def initialize &block
+      def initializer &block
         (block_given? && @initialize_block = block) || @initialize_block
       end
 
       # -----------------------------------------------------------------------------
-      def finalize &block
+      def finalizer &block
         (block_given? && @finalize_block = block) || @finalize_block
       end
 

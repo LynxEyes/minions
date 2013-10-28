@@ -55,5 +55,14 @@ module Minions
       logger.send(level, message)
     end
 
+    # -----------------------------------------------------------------------------
+    def log_exception message, exception, level = :info
+      log(<<-EOS.strip_heredoc, level)
+        #{message}
+          #{exception.message}
+          #{exception.backtrace * "\n            "}
+      EOS
+    end
+
   end # module WorkerLogger
 end # module Minions

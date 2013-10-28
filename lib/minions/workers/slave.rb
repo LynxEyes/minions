@@ -23,13 +23,13 @@ module Minions
         @context   = minion.new(self)
         @callbacks = minion.slave
 
-        context.instance_exec(&minion.initialize) if minion.initialize
+        context.instance_exec(&minion.initializer) if minion.initializer
       end
 
       # -----------------------------------------------------------------------------
       def finalize
         # log "finalizing.."
-        context.instance_exec(&minion.finalize) if minion.finalize
+        context.instance_exec(&minion.finalizer) if minion.finalizer
         redis.quit
       end
 
@@ -43,8 +43,8 @@ module Minions
 
         loop do
           if job = get_job
-            task, args = job[:task].to_sym, job[:args]
-            context.instance_exec *args, &callbacks[task]
+            task, args = job[:task].to_sym, (job[:args] || [])
+            context.instance_exec args, &callbacks[task]
           end
           if stop_and_exit
             finalize

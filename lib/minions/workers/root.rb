@@ -61,13 +61,13 @@ module Minions
         # -----------------------------------------------------------------------------
         def stop_workers
           log "Stopping Ticker: #{@ticker}"
-          Process.kill :TERM, @ticker
+          Process.kill :TERM, @ticker if Process.running? @ticker
 
           log "Stopping Workers"
           @workers.each do |name, pid_hash|
             log "  Stopping '#{name}' Master: #{pid_hash[:master]}"
             log "  Stopping '#{name}' Slaves: #{pid_hash[:slaves]}"
-            Process.kill :TERM, pid_hash[:master] #pid
+            Process.kill :TERM, pid_hash[:master] if Process.running? pid_hash[:master]
             Process.kill :TERM, *pid_hash[:slaves]
           end
 
