@@ -45,7 +45,7 @@ module Minions
             json_message = MultiJson.load(message, :symbolize_keys => true)
             task = json_message[:task].to_sym
             args = json_message[:args] || []
-            context.instance_exec(args, &callbacks[task]) if callbacks[task]
+            context.instance_exec(*args, &callbacks[task]) if callbacks[task]
           end
         end
 

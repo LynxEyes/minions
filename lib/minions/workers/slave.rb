@@ -44,7 +44,7 @@ module Minions
         loop do
           if job = get_job
             task, args = job[:task].to_sym, (job[:args] || [])
-            context.instance_exec args, &callbacks[task]
+            context.instance_exec *args, &callbacks[task]
           end
           if stop_and_exit
             finalize

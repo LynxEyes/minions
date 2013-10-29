@@ -66,7 +66,7 @@ module Minions
           log "Stopping Workers"
           @workers.each do |name, pid_hash|
             log "  Stopping '#{name}' Master: #{pid_hash[:master]}"
-            log "  Stopping '#{name}' Slaves: #{pid_hash[:slaves]}"
+            log "  Stopping '#{name}' Slaves: #{pid_hash[:slaves] * ", "}"
             Process.kill :TERM, pid_hash[:master] if Process.running? pid_hash[:master]
             Process.kill :TERM, *pid_hash[:slaves]
           end
