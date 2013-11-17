@@ -63,7 +63,14 @@ module Minions
     end
 
     def load_rails_env
+      ENV["RAILS_ENV"] ||= Minions.env
       load "#{File.expand_path "."}/config/environment.rb"
+    rescue Exception => e
+      log <<-EOS.strip_heredoc, :error
+        Error loading the Rails environment: #{e.message}
+          #{e.backtrace.join "\n          "}
+      EOS
+      raise e
     end
 
     attr_reader :worker
