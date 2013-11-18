@@ -31,12 +31,23 @@ module Minions
   # -----------------------------------------------------------------------------
   # APP Configurations...
   def self.config
-    @config ||= YAML.load_file('config/minions.yml').tap do |cfg|
-      cfg[:env]         ||= "development"
-      cfg[:logto]       ||= "./log/minions.log"
-      cfg[:redis_url]   ||= "redis://localhost:6379"
-      cfg[:minions_dir] ||= "#{File.expand_path "."}/minions"
-    end
+    @config ||= load_config
+  end
+
+  def self.load_config
+    conf = if File.exists? 'config/minions.yml'
+         YAML.load_file('config/minions.yml')
+       else
+         {}
+       end
+
+    conf[:env]         ||= "development"
+    conf[:logto]       ||= "./log/minions.log"
+    conf[:redis_url]   ||= "redis://localhost:6379"
+    conf[:minions_dir] ||= "#{File.expand_path "."}/minions"
+    conf[:minions]     ||= []
+
+    conf
   end
 
   def self.[] idx
