@@ -38,17 +38,22 @@ command = ARGV.delete_at(0)
 def start
   if Minions.running?
     puts "Minions already running..."
+  elsif not Minions.redis_running?
+    puts "Cant start minions, unable to connect to redis!"
   else
     if Minions[:daemon]
-      print "launching as a daemon... "
+      print "launching as a daemon.."
 
       Process.launch_daemon :chdir => false do
         Minions.start
       end
 
-      sleep(1) while !Minions.running?
+      begin
+        print "."
+        sleep 0.5
+      end while !Minions.running?
 
-      puts "done!"
+      puts " done!"
     else
       puts "launching in live mode..."
       Minions.start
@@ -59,12 +64,16 @@ end
 # -----------------------------------------------------------------------------
 def stop
   if Minions.running?
-    print "stopping minions... "
+    print "stopping minions.."
 
     Minions.stop
-    sleep(1) while Minions.running?
 
-    puts "done!"
+    begin
+      print "."
+      sleep 0.5
+    end while Minions.running?
+
+    puts " done!"
 
   else
     puts "minions isn't running...."

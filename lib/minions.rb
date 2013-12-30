@@ -92,6 +92,13 @@ module Minions
   end
 
   # -----------------------------------------------------------------------------
+  def self.redis_running?
+    !!Redis.new(:url => Minions.redis_url).ping
+  rescue Redis::CannotConnectError
+    false
+  end
+
+  # -----------------------------------------------------------------------------
   # Process related methods
   def self.running?
     root_pid = Minions::PID.read :root
